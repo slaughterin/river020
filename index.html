@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@River</title>
+    <style>
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #000; color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; cursor: pointer; user-select: none;
+        }
+
+        #content-wrapper {
+            text-align: center;
+            transition: opacity 1.5s ease-in-out;
+            opacity: 1;
+            width: 100%;
+        }
+
+        .instruction { font-size: 14px; color: #444; letter-spacing: 2px; }
+
+        .main-text-container {
+            display: none; font-size: 32px; letter-spacing: 10px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        #cursor {
+            display: inline-block; width: 12px; height: 28px;
+            background-color: #fff; margin-left: 5px;
+            vertical-align: middle; animation: blink 1s infinite;
+        }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* The "Paste" look */
+        .skid-active {
+            display: block !important; position: fixed; top: 15px; left: 15px;
+            font-size: 13px; color: #fff; text-align: left; z-index: 10000;
+        }
+    </style>
+
+    <script>
+        function triggerSkid() {
+            const wrapper = document.getElementById('content-wrapper');
+            if (wrapper) {
+                // Wipe the screen but leave the body/audio alone
+                wrapper.innerHTML = `<div class="skid-active">nice try skid</div>`;
+                wrapper.style.opacity = "1";
+                // Reset layout to top-left
+                document.body.style.display = "block";
+            }
+        }
+
+        document.addEventListener('contextmenu', e => e.preventDefault());
+
+        window.addEventListener('keydown', (e) => {
+            if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && [73, 74, 67].includes(e.keyCode)) || (e.ctrlKey && [85, 83].includes(e.keyCode))) {
+                e.preventDefault();
+                triggerSkid();
+            }
+        });
+    </script>
+</head>
+<body>
+
+    <audio id="bg-music" loop>
+        <source src="music.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="content-wrapper">
+        <div id="start-screen" class="instruction">[ click anywhere ]</div>
+        <div id="main-screen" class="main-text-container">
+            <span id="typewriter">River</span><span id="cursor"></span>
+        </div>
+    </div>
+
+    <script>
+        let entered = false;
+
+        async function transitionPage() {
+            if (entered) return;
+            entered = true;
+
+            const wrap = document.getElementById('content-wrapper');
+            const start = document.getElementById('start-screen');
+            const main = document.getElementById('main-screen');
+            const music = document.getElementById('bg-music');
+            const type = document.getElementById('typewriter');
+
+            music.play().catch(() => {});
+
+            // Smooth fade
+            wrap.style.opacity = "0";
+
+            setTimeout(() => {
+                start.style.display = "none";
+                main.style.display = "block";
+                wrap.style.opacity = "1";
+
+                setTimeout(() => startLoop(type), 1000);
+            }, 1500); 
+        }
+
+        document.addEventListener('click', transitionPage);
+
+        async function startLoop(el) {
+            await typeEffect(el, "", true);
+            while (true) {
+                await typeEffect(el, "River", false);
+                await new Promise(r => setTimeout(r, 3000));
+                await typeEffect(el, "", true);
+                await new Promise(r => setTimeout(r, 500));
+            }
+        }
+
+        async function typeEffect(el, text, isDel) {
+            const cur = el.innerText;
+            if (isDel) {
+                for (let i = cur.length; i >= 0; i--) {
+                    el.innerText = cur.substring(0, i);
+                    await new Promise(r => setTimeout(r, 80));
+                }
+            } else {
+                for (let i = 0; i <= text.length; i++) {
+                    el.innerText = text.substring(0, i);
+                    await new Promise(r => setTimeout(r, 150));
+                }
+            }
+        }
+    </script>
+</body>
+</html>
